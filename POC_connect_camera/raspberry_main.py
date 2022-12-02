@@ -15,9 +15,9 @@ host = config['IOT_CORE_ENDPOINT']
 clientId = config['IOT_THINGNAME']
 topic = clientId + '/action'
 
-rootCAPath = './certs/cacert.pem'
-certificatePath = './certs/certificate.pem'
-privateKeyPath = './certs/private.pem.key'
+rootCAPath = '~/certs/Amazon-root-CA-1.pem'
+certificatePath = '~/certs/certificate.pem.crt'
+privateKeyPath = '~/certs/private.pem.key'
 port = 443
 useWebsocket = False
 

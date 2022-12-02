@@ -2,15 +2,11 @@ sudo apt-get update
 sudo apt-get -y upgrade
 
 sudo apt-get -y install curl
-sudo apt-get -y install python3
-sudo apt-get -y install python3-pip
-sudo apt-get -y install git g++ gcc cmake make
 sudo apt-get -y install libssl-dev libcurl4-openssl-dev liblog4cplus-1.1-9 liblog4cplus-dev
 sudo apt-get -y install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 sudo apt-get -y install gstreamer1.0-plugins-base-apps gstreamer1.0-plugins-bad
 sudo apt-get -y install gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-tools
 sudo apt-get -y install gstreamer1.0-omx
-pip3 install AWSIoTPythonSDK
 
 #if [ "$MOTOR_DRIVER" == "adafruit" ]
 #then
@@ -18,22 +14,6 @@ pip3 install AWSIoTPythonSDK
 #else
 #    sudo apt-get -y install python3-explorerhat
 #fi
-
-if [ ! -d /home/pi/Projects ]
-then
-  mkdir /home/pi/Projects
-  cd /home/pi/Projects
-else
-  cd /home/pi/Projects
-fi
-
-if [ ! -d /home/pi/Projects/RemoteScience ]
-then
-  mkdir /home/pi/Projects/RemoteScience 
-  cd /home/pi/Projects/RemoteScience 
-else
-  cd /home/pi/Projects/RemoteScience 
-fi
 
 #if [ "$MOTOR_DRIVER" == "adafruit" ]
 #then
@@ -45,19 +25,13 @@ fi
 #TODO: replace to our things
 cat > config.json <<EOF
 {
-  "IOT_THINGNAME": "",
-  "IOT_CORE_ENDPOINT": "",
+  "IOT_THINGNAME": "RemoteSciencePi",
+  "IOT_CORE_ENDPOINT": "ay40tqbrs6xxi-ats.iot.us-west-2.amazonaws.com",
   "IOT_GET_CREDENTIAL_ENDPOINT": "",
   "ROLE_ALIAS": "robot-camera-streaming-role-alias",
   "AWS_DEFAULT_REGION": ""
 }
 EOF
-
-mkdir /home/pi/Projects/RemoteScience/certs
-cd /home/pi/Projects/RemoteScience/certs
-curl --silent 'https://www.amazontrust.com/repository/SFSRootCAG2.pem' --output cacert.pem #TODO: replace with our certificate
-touch certificate.pem
-touch private.pem.key
 
 cd /home/pi/Projects
 
