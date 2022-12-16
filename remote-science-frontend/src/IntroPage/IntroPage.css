@@ -1,0 +1,9 @@
+.introPageRoot{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.nameInput {
+    margin: 10% 0;
+}
