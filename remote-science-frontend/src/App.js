@@ -3,6 +3,7 @@ import { useLayoutEffect, useState } from 'react';
 import IntroPage from './IntroPage/IntroPage';
 import ExperimentPage from './ExperimentPage/ExperimentPage';
 import './App.css';
+import {ReactComponent as RemoteScienceLogo} from './RemoteScience.svg';
 
 function App() {
   /** premission - the state of the request to start the experiment.
@@ -21,36 +22,39 @@ function App() {
   return (
     <div className="appRoot">
       <div className='header'>
-        <h1>Remote Science</h1>
-        <h2>Experiment from the comfort of your home!</h2>
+        <h1 className='pageTitle'><RemoteScienceLogo className='logo'/>Remote Science</h1>
+        <h2 className='pageSubtitle'>Experiment from the comfort of your home!</h2>
       </div>
       <div className='content'>
-        {
-          accessPermission !== 1 ?
-            <IntroPage
-              accessPermission={accessPermission}
-              setAccessPermission={setAccessPermission}
-              clientName={clientName}
-              setClientName={setClientName}
-              clientID={clientID}
-              setClientID={setClientID}
-            /> : 
-            <ExperimentPage
-              accessPermission={accessPermission}
-              setAccessPermission={setAccessPermission}
-              clientName={clientName}
-              setClientName={setClientName}
-              clientID={clientID}
-              setClientID={setClientID}
-            />
-        }
+        <div className='experiment'>
+          {
+            accessPermission !== 1 ?
+              <IntroPage
+                accessPermission={accessPermission}
+                setAccessPermission={setAccessPermission}
+                clientName={clientName}
+                setClientName={setClientName}
+                clientID={clientID}
+                setClientID={setClientID}
+              /> : 
+              <ExperimentPage
+                accessPermission={accessPermission}
+                setAccessPermission={setAccessPermission}
+                clientName={clientName}
+                setClientName={setClientName}
+                clientID={clientID}
+                setClientID={setClientID}
+              />
+          }
+        </div>
         <div className='results'>
-          <div className='livestream'>
-            <h3>here we will have the livestream of the experiment :)</h3>
-            <iframe/>
+          <div className='livestreamWrapper'>
+            <h3 className='description'>View the current experiment:</h3>
+            <iframe className='livestream'/>
           </div>
-          <div className='datastream'>
-            <h3>here we will have the data stream of the experiment :)</h3>
+          <div className='datastreamWrapper'>
+            <h3 className='description'>View the results of the experiment:</h3>
+            <div className='datastream'></div>
           </div>
         </div>
       </div>

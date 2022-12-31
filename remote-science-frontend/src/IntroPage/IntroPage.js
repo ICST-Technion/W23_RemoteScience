@@ -30,7 +30,9 @@ const IntroPage = ({
                 const currentClientID = data.clientID;
                 setClientID(currentClientID);
               }
-              setAccessPermission(currentAccessPermission);
+              if(accessPermission !== currentAccessPermission) {
+                setAccessPermission(currentAccessPermission);
+              }
             }
       });})
       .catch(()=>{
@@ -101,7 +103,7 @@ const IntroPage = ({
       case 0:
         return (
           <form onSubmit={_handleSubmit} className='introPageRoot register'>
-            <label htmlFor='nameInput'>Please enter your name:</label>
+            <label className='description inputLabel' htmlFor='nameInput'>Please enter your name:</label>
             <input
               className='nameInput'
               type="text"
