@@ -6,3 +6,10 @@
     height: 100%;
     margin: 2vw;
 }
+
+.error {
+    background-color: rgba(255, 0, 0, 0.443);
+    border: 1px solid red;
+    height: fit-content;
+    border-radius: 6px;
+}

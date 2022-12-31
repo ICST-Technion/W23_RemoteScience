@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from 'react';
-import './IntroPage.css'
+import './IntroPage.css';
 
 const IntroPage = ({
   accessPermission,
@@ -7,23 +7,25 @@ const IntroPage = ({
   clientName,
   setClientName,
   clientID,
-  setClientID
+  setClientID,
+  experimentTime
 }) => {
-  const [nameInputValue, setNameInputValue] = useState("");
+  const [nameInputValue, setNameInputValue] = useState(clientName);
 
-  const _handleAccessPermissionStatus = requestType => {
+  const _handleRequests = requestType => {
     /** I assume that our request is in http and is in the form:
      * http://our_amazon_server/accessPermission/clientName - for a request to join the queue
      * http://our_amazon_server/accessPermissionStatus/clientID - for a request to see the status in the queue
      * TODO: change the format after we create the server
      */
-    fetch(`http://our_amazon_server/${requestType}/${requestType === "accessPermissionStatus" ? clientID : clientName}`)
+    fetch(`http://our_amazon_server/${requestType}/${requestType !== "accessPermission" ? clientID : clientName}`)
       .then((response)=>{
         if (response.status !== 200) {
             setAccessPermission(-1);
             return;
         }
-        response.json().then((data)=>{ 
+        response.json().then((data)=>{
+          if(requestType!=="cancelID"){
             if(data && data.accessPermission){
               const currentAccessPermission = data.accessPermission;
               if(requestType === "accessPermission" && data.clientID) {
@@ -34,6 +36,13 @@ const IntroPage = ({
                 setAccessPermission(currentAccessPermission);
               }
             }
+          }
+          else {
+            if(data && data.success==="ok"){
+              setAccessPermission(0);
+              setClientID(0);
+            }
+          }
       });})
       .catch(()=>{
         setAccessPermission(-1);
@@ -48,8 +57,8 @@ const IntroPage = ({
      * */
   /*  if(accessPermission>1){
       let reload = setTimeout(()=> {
-        setAccessPermission(_handleAccessPermissionStatus("accessPermissionStatus"))
-      }, 1000);
+        setAccessPermission(_handleRequests("accessPermissionStatus"))
+      }, experimentTime*100);
       return () => {
         clearTimeout(reload);
       }
@@ -69,7 +78,11 @@ const IntroPage = ({
 
   const _handleSubmit = () => {
     setClientName(nameInputValue);
-    //_handleAccessPermissionStatus("accessPermission");
+    //_handleRequests("accessPermission");
+  }
+
+  const _handleCanel = () => {
+    //_handleRequests("cancelID");
   }
 
   const Status = () => {
@@ -92,6 +105,7 @@ const IntroPage = ({
         <h3>Thanks {clientName}, you successfuly joined the queue!</h3>
         <h3>{statusText}</h3>
         <h4>You can view other's experiments in the meantime</h4>
+        <button onClick={_handleCanel}>Cancel Registeration</button>
       </div>
     )
   }

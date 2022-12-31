@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from 'react';
-import './ExperimentPage.css'
+import Loading from '../Helpers/Loading';
+import './ExperimentPage.css';
 
 const ExperimentPage = ({
   accessPermission,
@@ -7,12 +8,14 @@ const ExperimentPage = ({
   clientName,
   setClientName,
   clientID,
-  setClientID
+  setClientID,
+  experimentTime,
 }) => {
 
   const [angleInputValue, setAngleInputValue] = useState(10);
   const [lengthInputValue, setLengthInputValue] = useState(5);
   const [runningExperiment, setRunningExperiment] = useState(false);
+  const [resultsFile, setResultsFile] = useState("");
 
   const _handleAngleChange = event => {
     setAngleInputValue(event.target.value);
@@ -31,8 +34,11 @@ const ExperimentPage = ({
             return;
         }
         response.json().then((data)=>{ 
-            if(data){
-              setRunningExperiment(data.success==="ok");
+            if(data && data.success==="ok"){
+              setRunningExperiment(true);
+              setTimeout(()=> {
+                _handleResults()
+              }, experimentTime*100);
             }
       });})
       .catch(()=>{
@@ -65,13 +71,40 @@ const ExperimentPage = ({
       });
   }
 
+  const _handleResults = () => {
+    fetch(`http://our_amazon_server/getResults/${clientID}/`)
+      .then((response)=>{
+        if (response.status !== 200) {
+            setAccessPermission(-1);
+            return;
+        }
+        response.json().then((data)=>{ 
+            if(data && data.file){
+              setResultsFile(data.file);
+            }
+      });})
+      .catch(()=>{
+        setAccessPermission(-1);
+        return;
+      });
+  }
+
   return (
     runningExperiment ? (
       <div className='experimentPageRoot runningExperiment'>
         <h3>Thank you, {clientName}, your parameters were accepted!</h3>
-        <h3>You can view the results and livestream of the experiment on the right</h3>
-        <button onClick={_handleStopExperimentClick}>Stop experiment</button>
-        <button onClick={_handleAnotherExperimentClick}>Register for another experiment</button>
+        <h3>Stick angle: {angleInputValue}; Stick length {lengthInputValue}</h3>
+        <h3>You can view the livestream of the experiment on the right</h3>
+        {resultsFile?
+          <a href={resultsFile} download className='results'>Download Results</a>
+          :
+          <Loading className='results' message={`waiting for results`}/>
+        }
+        {resultsFile?
+          <button onClick={_handleAnotherExperimentClick}>Register for another experiment</button>
+          :
+          <button onClick={_handleStopExperimentClick}>Stop experiment</button>
+        }
       </div>
       ) : (
       <form className="experimentPageRoot paramsPageRoot" onSubmit={_handleSubmit}>

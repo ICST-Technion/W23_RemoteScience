@@ -3,7 +3,7 @@ import { useLayoutEffect, useState } from 'react';
 import IntroPage from './IntroPage/IntroPage';
 import ExperimentPage from './ExperimentPage/ExperimentPage';
 import './App.css';
-import {ReactComponent as RemoteScienceLogo} from './RemoteScience.svg';
+import {ReactComponent as RemoteScienceLogo} from './Helpers/RemoteScience.svg';
 
 function App() {
   /** premission - the state of the request to start the experiment.
@@ -18,6 +18,8 @@ function App() {
   const [clientName, setClientName] = useState("");
   /** the ID the client will get fron the server */
   const [clientID, setClientID] = useState(0);
+
+  const experimentTime = 180;
 
   return (
     <div className="appRoot">
@@ -36,6 +38,7 @@ function App() {
                 setClientName={setClientName}
                 clientID={clientID}
                 setClientID={setClientID}
+                experimentTime={experimentTime}
               /> : 
               <ExperimentPage
                 accessPermission={accessPermission}
@@ -44,20 +47,15 @@ function App() {
                 setClientName={setClientName}
                 clientID={clientID}
                 setClientID={setClientID}
+                experimentTime={experimentTime}
               />
           }
         </div>
-        <div className='results'>
           <div className='livestreamWrapper'>
             <h3 className='description'>View the current experiment:</h3>
             <iframe className='livestream'/>
           </div>
-          <div className='datastreamWrapper'>
-            <h3 className='description'>View the results of the experiment:</h3>
-            <div className='datastream'></div>
-          </div>
         </div>
-      </div>
     </div>
   );
 }
