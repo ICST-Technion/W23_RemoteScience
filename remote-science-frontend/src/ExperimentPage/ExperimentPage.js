@@ -93,7 +93,7 @@ const ExperimentPage = ({
     runningExperiment ? (
       <div className='experimentPageRoot runningExperiment'>
         <h3>Thank you, {clientName}, your parameters were accepted!</h3>
-        <h3>Stick angle: {angleInputValue}; Stick length {lengthInputValue}</h3>
+        <h3>Pendulum angle: {angleInputValue} (degrees); Pendulum length: {lengthInputValue} (mm)</h3>
         <h3>You can view the livestream of the experiment on the right</h3>
         {resultsFile?
           <a href={resultsFile} download className='results'>Download Results</a>
@@ -109,7 +109,7 @@ const ExperimentPage = ({
       ) : (
       <form className="experimentPageRoot paramsPageRoot" onSubmit={_handleSubmit}>
         <h3>Please enter your paramters for the experiment:</h3>
-        <label className='description' htmlFor="angleInput">Stick Angle: {angleInputValue}</label>
+        <label className='description' htmlFor="angleInput">Pendulum Angle: {angleInputValue} degrees</label>
         <input
           className='angleInput'
           type="range"
@@ -120,7 +120,7 @@ const ExperimentPage = ({
           onInput={_handleAngleChange}
           id="angleInput"
         />
-        <label className='description' htmlFor="lengthInput">Stick length: {lengthInputValue}</label>
+        <label className='description' htmlFor="lengthInput">Pendulum length: {lengthInputValue} mm</label>
         <input
           className='lengthInput'
           type="range"
@@ -132,6 +132,7 @@ const ExperimentPage = ({
           id="lengthInput"
         />
         <button className='submitParams' type='submit'>Start Experiment</button>
+        <button className='back' onClick={_handleStopExperimentClick}>Cancel</button>
       </form>
       )
   );

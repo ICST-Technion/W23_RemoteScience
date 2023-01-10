@@ -53,7 +53,7 @@ function App() {
         </div>
           <div className='livestreamWrapper'>
             <h3 className='description'>View the current experiment:</h3>
-            <iframe className='livestream'/>
+            <iframe className='livestream'  src="https://www.youtube.com/embed/live_stream?channel=UCV6mxW8F-Ei6Dos__SrTJ5A"/>
           </div>
         </div>
     </div>
