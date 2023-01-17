@@ -27,14 +27,24 @@ const ExperimentPage = ({
 
   const _handleSubmit = event => {
     event.preventDefault();
-    /*fetch(`http://our_amazon_server/sendParams/${clientID}/${angleInputValue}/${lengthInputValue}`)
-      .then((response)=>{
+    // TODO: add clientID when we add support for multiple users.
+    const requestBody = {
+      "thingname" : "RemoteSciencePi",
+      "action" : "start",
+      "length": lengthInputValue,
+      "angle": angleInputValue
+    };
+
+    fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
+      method: 'POST',
+      body: JSON.stringify(requestBody)
+    }).then((response)=>{
         if (response.status !== 200) {
             setAccessPermission(-1);
             return;
         }
         response.json().then((data)=>{ 
-            if(data && data.success==="ok"){
+            if(data && data==="Shadow Updated!"){
               setRunningExperiment(true);
               setTimeout(()=> {
                 _handleResults()
@@ -44,7 +54,7 @@ const ExperimentPage = ({
       .catch(()=>{
         setAccessPermission(-1);
         return;
-      });*/
+      });
   }
 
   const _handleAnotherExperimentClick = () => {
@@ -53,17 +63,24 @@ const ExperimentPage = ({
   }
 
   const _handleStopExperimentClick = () => {
-    fetch(`http://our_amazon_server/stopExperiment/${clientID}/`)
-      .then((response)=>{
+    const requestBody = {
+      "thingname" : "RemoteSciencePi",
+      "action" : "stop"
+    };
+
+    fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
+      method: 'POST',
+      body: JSON.stringify(requestBody)
+    }).then((response)=>{
         if (response.status !== 200) {
-            setAccessPermission(-1);
-            return;
+          setAccessPermission(-1);
+          return;
         }
         response.json().then((data)=>{ 
-            if(data){
-              setAccessPermission(0);
-              setClientID(0);
-            }
+          if(data && data==="Shadow Updated!"){
+            setAccessPermission(0);
+            setClientID(0);
+          }
       });})
       .catch(()=>{
         setAccessPermission(-1);
@@ -72,16 +89,16 @@ const ExperimentPage = ({
   }
 
   const _handleResults = () => {
-    fetch(`http://our_amazon_server/getResults/${clientID}/`)
+    fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state?thingname=RemoteSciencePi`)
       .then((response)=>{
         if (response.status !== 200) {
-            setAccessPermission(-1);
-            return;
+          setAccessPermission(-1);
+          return;
         }
         response.json().then((data)=>{ 
-            if(data && data.file){
-              setResultsFile(data.file);
-            }
+          if(data && data.result){
+            setResultsFile("https://remotesciencebucket.s3.us-west-2.amazonaws.com/index.html");
+          }
       });})
       .catch(()=>{
         setAccessPermission(-1);
