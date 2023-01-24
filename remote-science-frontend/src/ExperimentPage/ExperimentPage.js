@@ -16,6 +16,7 @@ const ExperimentPage = ({
   const [lengthInputValue, setLengthInputValue] = useState(5);
   const [runningExperiment, setRunningExperiment] = useState(false);
   const [resultsFile, setResultsFile] = useState("");
+  const [experimentTimeout, setExperimentTimeout] = useState(undefined);
 
   const _handleAngleChange = event => {
     setAngleInputValue(event.target.value);
@@ -46,9 +47,9 @@ const ExperimentPage = ({
         response.json().then((data)=>{ 
             if(data && data==="Shadow Updated!"){
               setRunningExperiment(true);
-              setTimeout(()=> {
+              setExperimentTimeout(setTimeout(()=> {
                 _handleResults()
-              }, experimentTime*100);
+              }, experimentTime*100));
             }
       });})
       .catch(()=>{
@@ -58,7 +59,9 @@ const ExperimentPage = ({
   }
 
   const _handleAnotherExperimentClick = () => {
-    setAccessPermission(0);
+    setAccessPermission(1);
+    setRunningExperiment(false);
+    setResultsFile("");
     setClientID(0);
   }
 
@@ -78,7 +81,11 @@ const ExperimentPage = ({
         }
         response.json().then((data)=>{ 
           if(data && data==="Shadow Updated!"){
-            setAccessPermission(0);
+            setAccessPermission(1);
+            setRunningExperiment(false);
+            setResultsFile("");
+            clearTimeout(experimentTimeout);
+            setExperimentTimeout(undefined);
             setClientID(0);
           }
       });})
