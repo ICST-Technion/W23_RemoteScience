@@ -1,0 +1,12 @@
+.experimentPageRoot {
+    display: flex;
+    flex-direction: column;
+}
+
+.angleInput, .lengthInput {
+    accent-color: rgb(228, 101, 59);
+}
+
+.results {
+    margin-bottom: 1em;
+}

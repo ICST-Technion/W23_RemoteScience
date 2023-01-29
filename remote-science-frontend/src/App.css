@@ -1,0 +1,70 @@
+.appRoot {
+  text-align: center;
+  height: 100vh;
+  width: 100vw;
+}
+
+.header {
+  background-color: rgb(237, 137, 104);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgb(255, 255, 255);
+  height: 10em;
+  border-bottom: 1px solid black;
+}
+
+.logo {
+  margin-right: 0.3em;
+}
+
+.pageTitle {
+  font-size: 2em;
+  margin: 0.5em 0;
+  margin-bottom: 0.4em;
+}
+
+.pageSubtitle {
+  font-size: 1.5em;
+  margin: 0.5em 0;
+  margin-top: 0.4em;
+}
+
+.content {
+  display: flex;
+  height: calc(100vh - 10em);
+  align-items: stretch;
+  background-color: rgb(207, 207, 207);
+}
+
+.livestreamWrapper {
+  margin: 1vh 2vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.livestream {
+  width: 60vw;
+  height: calc(calc(calc(100vh - 10em) / 1.5));
+  border: 1px solid black;
+  background-color: rgb(178, 132, 220);
+}
+
+.description {
+  align-self: flex-start;
+  font-size: 1.25em;
+}
+
+.experiment {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.inputLabel {
+  margin: 1vh 1vw;
+}
