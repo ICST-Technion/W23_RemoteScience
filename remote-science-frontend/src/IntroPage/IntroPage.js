@@ -18,7 +18,7 @@ const IntroPage = ({
      * http://our_amazon_server/accessPermissionStatus/clientID - for a request to see the status in the queue
      * TODO: change the format after we create the server
      */
-    fetch(`http://our_amazon_server/${requestType}/${requestType !== "accessPermission" ? clientID : clientName}`)
+    /*fetch(`http://our_amazon_server/${requestType}/${requestType !== "accessPermission" ? clientID : clientName}`)
       .then((response)=>{
         if (response.status !== 200) {
             setAccessPermission(-1);
@@ -47,7 +47,7 @@ const IntroPage = ({
       .catch(()=>{
         setAccessPermission(-1);
         return;
-      });
+      });*/
   }
 
   /*useLayoutEffect(() => {

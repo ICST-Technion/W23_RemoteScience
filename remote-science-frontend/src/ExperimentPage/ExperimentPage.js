@@ -104,7 +104,8 @@ const ExperimentPage = ({
         }
         response.json().then((data)=>{ 
           if(data && data.result){
-            setResultsFile("https://remotesciencebucket.s3.us-west-2.amazonaws.com/index.html");
+            /** TODO: change to real result */
+            setResultsFile("https://remotesciencebucket.s3.us-west-2.amazonaws.com/Test.txt");
           }
       });})
       .catch(()=>{
@@ -120,7 +121,7 @@ const ExperimentPage = ({
         <h3>Pendulum angle: {angleInputValue} (degrees); Pendulum length: {lengthInputValue} (mm)</h3>
         <h3>You can view the livestream of the experiment on the right</h3>
         {resultsFile?
-          <a href={resultsFile} download className='results'>Download Results</a>
+          <a href={resultsFile} download className='results' target="_blank">Download Results</a>
           :
           <Loading className='results' message={`waiting for results`}/>
         }
