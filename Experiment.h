@@ -3,10 +3,10 @@ class Experiment {
     
   public:
 
-    static void prepare(int lowSteps, int angleSteps);
+    static void prepare(int upSteps, int angleSteps);
 
     static void start();
     
-    static void endAll(int raiseSteps, int takingBackSteps);
+    static void endAll();
     
 };
