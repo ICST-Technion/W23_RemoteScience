@@ -1,19 +1,5 @@
-# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this
-# software and associated documentation files (the "Software"), to deal in the Software
-# without restriction, including without limitation the rights to use, copy, modify,
-# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so.
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
-# from adafruit_motorkit import MotorKit
-# kit = MotorKit()
+from awscrt import mqtt
 import subprocess
 import signal
 import json
@@ -24,8 +10,6 @@ import boto3
 
 AWS_IOT_PUBLISH_TOPIC = "$aws/things/RemoteSciencePi/shadow/update"
 AWS_IOT_SUBSCRIBE_TOPIC = "$aws/things/RemoteSciencePi/shadow/update/delta"
-# sndPayloadSuccess = "{\"state\": { \"reported\": { \"status\": \"on\" } }}"
-# speed = 0.7
 s3 = boto3.client("s3")
 
 with open('./config.json') as json_file:
@@ -37,57 +21,72 @@ topic = clientId + '/action'
 
 # MQTT communication
 rootCAPath = './certs/Amazon-root-CA-3.pem' #if not working try 1 instead of 3
-certificatePath = './certs/certificate.pem'
+certificatePath = './certs/certificate.pem.crt'
 privateKeyPath = './certs/private.pem.key'
 port = 443
 useWebsocket = False
 
 def runYoutubeVideoStream():
 	# explenation regarding parameters can be found in the project drive
-  command = 'raspivid -o - -t 0 -vf -hf -fps 60 -b 12000000 -rot 180 | ffmpeg -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero -i - -vcodec copy -acodec aac -ab 384k -g 17 -strict experimental -f flv rtmp://a.rtmp.youtube.com/live2/'
+  command = 'raspivid -p 100,100,100,100 -o - -t 0 -vf -hf -fps 60 -b 12000000 -rot 180 | ffmpeg -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero -i - -vcodec copy -acodec aac -ab 384k -g 17 -strict experimental -f flv rtmp://a.rtmp.youtube.com/live2/'
   command += config['YOUTUBE_KEY']    
 
-  proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
-  return proc
+  livestream_proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True) #preexec_fn=os.setsid to make independent from parent
+  return livestream_proc
 
 def runWaitingVideoStream():
   pass
 
 
 # Handle incoming messages and take action
-def handleMessage(message):
+def handleMessage(awsClient, message):
   print("Received a new message: ")
   print(message.payload)
   print("from topic: ")
   print(message.topic)
   print("--------------\n\n")
+  
+  payload = json.loads(message.payload)
+  action = payload['state']['action']
 
-  res = message['payload'].read()
-  res_json = json.loads(res)
-  # StaticJsonDocument<200> doc;
-  # DeserializationError error_sensor = deserializeJson(doc, message);
-  # const char *stat = doc["state"]["status"];
-  action = res_json['state']['desired']['action']
-
-  # if message.topic == topic: # START EXPERIMENT
+  # START EXPERIMENT
   if action == "start":
     # kill the waiting-video process
-    #waiting_process.kill()
-    runYoutubeVideoStream() # start broadcasting 
+    # waiting_process.kill()
+    proc = runYoutubeVideoStream() # start broadcasting 
+    # print(proc.pid)
+    
     # connect to arduino, send parameters
-    # listen to arduino result, collide into file
+    # listen to arduino result, collide into file. if 'stop' was sent then the file will be partial(?)
 
     # send file to S3
     s3.upload_file(
-        Filename="data/results.csv",
+        Filename="sample_results.txt",
         Bucket="remotesciencebucket",
-        Key="sample_results.csv",
+        Key="data/sample_results.txt",
     )
-    # update the shadow with the link to results file in S3
-    # client.publish(AWS_IOT_PUBLISH_TOPIC, sndPayloadOn);
-  elif action == "stop":
-    #livestream_process.kill()
-    runWaitingVideoStream()
+    # FUTURE FEATURE - update the shadow with the link to results file in S3
+    # The segment below currently raises timeout due to AWS limitations.
+    
+    # link="https://remotesciencebucket.s3.us-west-2.amazonaws.com/data/sample_results.txt"
+    # payload = json.dumps({'state': { 'reported': { 'action': '-', 'length': '-', 'angle': '-', 'result': link } }})
+    # awsClient.publish(
+     #   topic=AWS_IOT_PUBLISH_TOPIC,
+     #   payload="s",
+    #  QoS=1 
+    # )
+        
+    time.sleep(10) # change to sleep T
+    print("slept")
+    # proc.kill()
+    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+   
+  
+  # elif action == "stop": FUTURE FEATURE  - allow stopping of the experiment - dont send the data to the user
+	#  # ask arduino to stop.
+	
+  #  livestream_proc.kill()
+  #  runWaitingVideoStream()
 
   time.sleep(0.2)
 
@@ -102,9 +101,9 @@ def connectAWS():
   awsClient.configureAutoReconnectBackoffTime(1, 32, 20)
   awsClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
   awsClient.configureDrainingFrequency(2)  # Draining: 2 Hz
-  awsClient.configureConnectDisconnectTimeout(10)  # 10 sec
-  awsClient.configureMQTTOperationTimeout(5)  # 5 sec
-  awsClient.onMessage = handleMessage
+  # awsClient.configureConnectDisconnectTimeout(10)  # 10 sec
+  # awsClient.configureMQTTOperationTimeout(5)  # 5 sec
+  awsClient.onMessage = lambda message: handleMessage(awsClient,message)
 
   # Connect and subscribe to AWS IoT
   awsClient.connect()
