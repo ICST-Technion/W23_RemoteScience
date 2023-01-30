@@ -47,9 +47,10 @@ const ExperimentPage = ({
         response.json().then((data)=>{ 
             if(data && data==="Shadow Updated!"){
               setRunningExperiment(true);
+              /*TODO: change timeout when known */
               setExperimentTimeout(setTimeout(()=> {
                 _handleResults()
-              }, experimentTime*100));
+              }, experimentTime+90));
             }
       });})
       .catch(()=>{
@@ -139,8 +140,8 @@ const ExperimentPage = ({
           className='angleInput'
           type="range"
           step={0.5}
-          min={10}
-          max={20}
+          min={1}
+          max={30}
           value={angleInputValue}
           onInput={_handleAngleChange}
           id="angleInput"
@@ -150,8 +151,8 @@ const ExperimentPage = ({
           className='lengthInput'
           type="range"
           step={1}
-          min={5}
-          max={15}
+          min={1}
+          max={8}
           value={lengthInputValue}
           onInput={_handleLengthChange}
           id="lengthInput"

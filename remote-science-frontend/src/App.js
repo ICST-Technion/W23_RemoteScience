@@ -19,7 +19,7 @@ function App() {
   /** the ID the client will get fron the server */
   const [clientID, setClientID] = useState(0);
 
-  const experimentTime = 60;
+  const experimentTime = 90;
 
   return (
     <div className="appRoot">
