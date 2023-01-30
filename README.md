@@ -27,4 +27,4 @@ The system has 4 main parts:
 4. **Youtube live**: our Pi uses a camera to film the pendulum whlile an experiment is conducted, and we use youtube live to stream the experiment to the client (the live video is embedded in the web page).
 
 ## Poster for the Project
-![System Diagram](/assets/Poster.png)
+![Poster](/assets/poster.png)
