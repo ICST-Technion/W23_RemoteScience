@@ -58,7 +58,7 @@ const IntroPage = ({
   /*  if(accessPermission>1){
       let reload = setTimeout(()=> {
         setAccessPermission(_handleRequests("accessPermissionStatus"))
-      }, experimentTime*100);
+      }, experimentTime+10);
       return () => {
         clearTimeout(reload);
       }
