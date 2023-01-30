@@ -19,7 +19,7 @@ function App() {
   /** the ID the client will get fron the server */
   const [clientID, setClientID] = useState(0);
 
-  const experimentTime = 90;
+  const experimentTime = 90000; //max time for experiment is 90 seconds - 90000 ms
 
   return (
     <div className="appRoot">

@@ -12,8 +12,8 @@ const ExperimentPage = ({
   experimentTime,
 }) => {
 
-  const [angleInputValue, setAngleInputValue] = useState(10);
-  const [lengthInputValue, setLengthInputValue] = useState(5);
+  const [angleInputValue, setAngleInputValue] = useState(1);
+  const [lengthInputValue, setLengthInputValue] = useState(1);
   const [runningExperiment, setRunningExperiment] = useState(false);
   const [resultsFile, setResultsFile] = useState("");
   const [experimentTimeout, setExperimentTimeout] = useState(undefined);
@@ -47,10 +47,9 @@ const ExperimentPage = ({
         response.json().then((data)=>{ 
             if(data && data==="Shadow Updated!"){
               setRunningExperiment(true);
-              /*TODO: change timeout when known */
               setExperimentTimeout(setTimeout(()=> {
                 _handleResults()
-              }, experimentTime+90));
+              }, experimentTime+45000));
             }
       });})
       .catch(()=>{
@@ -105,8 +104,8 @@ const ExperimentPage = ({
         }
         response.json().then((data)=>{ 
           if(data && data.result){
-            /** TODO: change to real result */
-            setResultsFile("https://remotesciencebucket.s3.us-west-2.amazonaws.com/Test.txt");
+            const filename = data.result
+            setResultsFile(filename);
           }
       });})
       .catch(()=>{
@@ -119,7 +118,7 @@ const ExperimentPage = ({
     runningExperiment ? (
       <div className='experimentPageRoot runningExperiment'>
         <h3>Thank you, {clientName}, your parameters were accepted!</h3>
-        <h3>Pendulum angle: {angleInputValue} (degrees); Pendulum length: {lengthInputValue} (mm)</h3>
+        <h3>Pendulum angle: {angleInputValue} (degrees); Pendulum length: {lengthInputValue} (cm)</h3>
         <h3>You can view the livestream of the experiment on the right</h3>
         {resultsFile?
           <a href={resultsFile} download className='results' target="_blank">Download Results</a>
@@ -139,14 +138,14 @@ const ExperimentPage = ({
         <input
           className='angleInput'
           type="range"
-          step={0.5}
+          step={1}
           min={1}
           max={30}
           value={angleInputValue}
           onInput={_handleAngleChange}
           id="angleInput"
         />
-        <label className='description' htmlFor="lengthInput">Pendulum length: {lengthInputValue} mm</label>
+        <label className='description' htmlFor="lengthInput">Pendulum length: {lengthInputValue} cm</label>
         <input
           className='lengthInput'
           type="range"
