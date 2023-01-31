@@ -20,7 +20,7 @@ def lambda_handler(event, context):
         THINGNAME="RemoteSciencePi"
     
     try:
-        response = client.get_thing_shadow(thingName=THINGNAME)
+        response = client.get_thing_shadow(thingName=THINGNAME, shadowName="remote_science_shadow")
         logger.info("Shadow State Received")
         res = response['payload'].read()
         res_json = json.loads(res)
@@ -34,12 +34,21 @@ def lambda_handler(event, context):
         logger.info("\nChanging for website\n")
      
         # translate to readable JSON and send to website
-        value = result['result'] #TODO: replace with our experiment results
+        value = result['result'] 
         if (value is not None):
             result['result'] = value
         
         logger.info("Sending to Website: " + json.dumps(result) + "\n")
         
+        # now confirm at the named shadow that the url was receivrd - change desired.
+        confirm_payload = json.dumps({'state': { 'desired': { 'action': '-', 'length': '-', 'angle': '-', 'result': value } }})
+        response = client.update_thing_shadow(
+            thingName=THINGNAME,
+            shadowName="remote_science_shadow",
+            payload=confirm_payload
+        )
+
+        logger.info("IOT Shadow Updated")
         return {
             'statusCode': 200,
             "headers": {
