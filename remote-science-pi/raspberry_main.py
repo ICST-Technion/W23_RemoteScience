@@ -7,19 +7,26 @@ import time
 import sys
 import os
 import boto3
+import random
+import serial
 
-AWS_IOT_PUBLISH_TOPIC = "$aws/things/RemoteSciencePi/shadow/update"
-AWS_IOT_SUBSCRIBE_TOPIC = "$aws/things/RemoteSciencePi/shadow/update/delta"
-s3 = boto3.client("s3")
+# arduino - hardware
+#ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
 
+# config
 with open('./config.json') as json_file:
     config = json.load(json_file)
 
 host = config['IOT_CORE_ENDPOINT']
 clientId = config['IOT_THINGNAME']
-topic = clientId + '/action'
+# topic = clientId + '/action'
 
 # MQTT communication
+AWS_IOT_PUBLISH_TOPIC = "$aws/things/RemoteSciencePi/shadow/name/remote_science_shadow/update" # for sending URL
+AWS_IOT_SUBSCRIBE_TOPIC = "$aws/things/RemoteSciencePi/shadow/update/delta" # for receiving requests
+AWS_IOT_CONFIRM_TOPIC = "$aws/things/RemoteSciencePi/shadow/update" # for confiming the request
+s3 = boto3.client("s3")
+
 rootCAPath = './certs/Amazon-root-CA-3.pem' #if not working try 1 instead of 3
 certificatePath = './certs/certificate.pem.crt'
 privateKeyPath = './certs/private.pem.key'
@@ -31,7 +38,7 @@ def runYoutubeVideoStream():
   command = 'raspivid -p 100,100,100,100 -o - -t 0 -vf -hf -fps 60 -b 12000000 -rot 180 | ffmpeg -re -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -ac 2 -i /dev/zero -i - -vcodec copy -acodec aac -ab 384k -g 17 -strict experimental -f flv rtmp://a.rtmp.youtube.com/live2/'
   command += config['YOUTUBE_KEY']    
 
-  livestream_proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True) #preexec_fn=os.setsid to make independent from parent
+  livestream_proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid) #preexec_fn=os.setsid to make independent from parent
   return livestream_proc
 
 def runWaitingVideoStream():
@@ -47,42 +54,68 @@ def handleMessage(awsClient, message):
   print("--------------\n\n")
   
   payload = json.loads(message.payload)
-  action = payload['state']['action']
 
-  # START EXPERIMENT
-  if action == "start":
-    # kill the waiting-video process
-    # waiting_process.kill()
-    proc = runYoutubeVideoStream() # start broadcasting 
-    # print(proc.pid)
-    
-    # connect to arduino, send parameters
-    # listen to arduino result, collide into file. if 'stop' was sent then the file will be partial(?)
-
-    # send file to S3
-    s3.upload_file(
-        Filename="sample_results.txt",
-        Bucket="remotesciencebucket",
-        Key="data/sample_results.txt",
-    )
-    # FUTURE FEATURE - update the shadow with the link to results file in S3
-    # The segment below currently raises timeout due to AWS limitations.
-    
-    # link="https://remotesciencebucket.s3.us-west-2.amazonaws.com/data/sample_results.txt"
-    # payload = json.dumps({'state': { 'reported': { 'action': '-', 'length': '-', 'angle': '-', 'result': link } }})
-    # awsClient.publish(
-     #   topic=AWS_IOT_PUBLISH_TOPIC,
-     #   payload="s",
-    #  QoS=1 
-    # )
-        
-    time.sleep(10) # change to sleep T
-    print("slept")
-    # proc.kill()
-    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-   
+  # silence delta - if received -1,-1 or received parameters
+  confirm_payload = json.dumps({
+    'state': { 
+      'reported': { 
+        'action': "start", 
+        'length': payload['state']['length'], 
+        'angle': payload['state']['angle'], 
+        'result':  "-"
+      }
+    }
+  })
   
-  # elif action == "stop": FUTURE FEATURE  - allow stopping of the experiment - dont send the data to the user
+  awsClient.publish(
+    topic=AWS_IOT_CONFIRM_TOPIC,
+    payload=confirm_payload,
+    QoS=0
+  )
+  
+  # if -1-1 end else Continue
+  if (payload['state']['length'] == "-1") or (payload['state']['angle'] == "-1"):
+    print("entered\n")
+    return
+    
+  # START EXPERIMENT
+
+  # kill the waiting-video process
+  # waiting_process.kill()
+  proc = runYoutubeVideoStream() # start broadcasting 
+  
+  # connect to arduino, send parameters
+  #ser.write(payload['state']['length'] + "\n".encode('utf-8'))
+  #ser.write(payload['state']['angle'] + "\n".encode('utf-8'))
+  
+  # listen to arduino result, collide into file. if 'stop' was sent then the file will be partial(?)
+  #while True:
+   # if ser.in_waiting > 0:
+    #  line = ser.readline().decode('utf-8').rstrip() # reads until \n - one result.
+     # print(line)
+          
+  generated_file = str(random.randint(0,999999)) + ".txt"
+  # send file to S3
+  s3.upload_file(
+      Filename="sample_results.txt",
+      Bucket="remotesciencebucket",
+      Key="data/" + generated_file
+  )
+  
+  # upload link to named shadow
+  link="https://remotesciencebucket.s3.us-west-2.amazonaws.com/data/" + generated_file
+  result_payload = json.dumps({'state': { 'reported': { 'action': '-', 'length': '-', 'angle': '-', 'result': link } }})
+  awsClient.publish(
+    topic=AWS_IOT_PUBLISH_TOPIC,
+    payload=result_payload,
+    QoS=0
+  )
+      
+  time.sleep(90) # change to sleep T
+  os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+ 
+  
+  # elif action == "stop": Future feature - allow stopping of the experiment - dont send the data to the user
 	#  # ask arduino to stop.
 	
   #  livestream_proc.kill()
@@ -103,7 +136,7 @@ def connectAWS():
   awsClient.configureDrainingFrequency(2)  # Draining: 2 Hz
   # awsClient.configureConnectDisconnectTimeout(10)  # 10 sec
   # awsClient.configureMQTTOperationTimeout(5)  # 5 sec
-  awsClient.onMessage = lambda message: handleMessage(awsClient,message)
+  awsClient.onMessage = lambda message: handleMessage(awsClient, message)
 
   # Connect and subscribe to AWS IoT
   awsClient.connect()
@@ -112,5 +145,6 @@ def connectAWS():
   time.sleep(2)
 
 connectAWS()
+#ser.reset_input_buffer()
 while True: # listen to messages 
   time.sleep(0.2)

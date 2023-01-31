@@ -1,6 +1,7 @@
 import json
 import boto3
 import logging
+import time
  
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -22,6 +23,15 @@ def lambda_handler(event, context):
         # requested experiment params
         length = body['length']
         angle = body['angle']
+
+        #first- reset:
+        payload = json.dumps({'state': { 'desired': { 'action': 'start', 'length': "-1", 'angle': "-1", 'result': '-' } }})
+        response = client.update_thing_shadow(
+            thingName=THINGNAME,
+            payload=payload
+        )
+        #SLEEP?
+        # send actual parameters
         payload = json.dumps({'state': { 'desired': { 'action': 'start', 'length': length, 'angle': angle, 'result': '-' } }})
         
         logger.info("Attempting to Update Shadow State to START EXPERIMENT")
@@ -30,7 +40,7 @@ def lambda_handler(event, context):
             payload=payload
         )
         logger.info("IOT Shadow Updated")
-    else: # stop experiment
+    else: # stop experiment - FUTURE FEATURE.
         payload = json.dumps({'state': { 'desired': { 'action': 'stop', 'length': '-', 'angle': '-', 'result': '-' } }})
         
         logger.info("Attempting to Update Shadow State to STOP EXPERIMENT")
