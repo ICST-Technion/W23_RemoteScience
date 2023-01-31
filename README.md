@@ -3,7 +3,8 @@ This project aims to support conducting experiments online, without the need for
 In this project, we support experimenting with a simple pendulum.\
 The system in the projects allows users to set the release angle and length of the pendulum via a web interface, then conducts the experiment with the required parameters, while livestreaming it to the user and recording the results of the experiment. When the experiment is done, a results file is available for the user to download from the web interface.\
 The web interface is available here:
-[Remote Sciece website](http://remotesciencebucket.s3-website-us-west-2.amazonaws.com/)
+[Remote Sciece website](http://remotesciencebucket.s3-website-us-west-2.amazonaws.com/)\
+Our system currently suports one client.
 
 Team members: Adi Falach, Stav Roth, Mai Barishansky\
 Lecturer: Itay Dabran\
@@ -13,7 +14,7 @@ Instructors: Tom Sofer, Aseel Aborokn
 This repo contains all the code we wrote for this project, divided to directories:
 1. remote-science-frontend - the react application for the web page
 2. a dir for Pi
-3. a dir for Arduino
+3. remote-science-arduino - the code that runs on the arduino to conduct the experiment
 ## System Architechture
 ![System Diagram](/assets/RemoteScienceDiagram.png)
 The system has 4 main parts:
