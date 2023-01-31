@@ -11,7 +11,7 @@ import random
 import serial
 
 # arduino - hardware
-#ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
+ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
 
 # config
 with open('./config.json') as json_file:
@@ -19,7 +19,6 @@ with open('./config.json') as json_file:
 
 host = config['IOT_CORE_ENDPOINT']
 clientId = config['IOT_THINGNAME']
-# topic = clientId + '/action'
 
 # MQTT communication
 AWS_IOT_PUBLISH_TOPIC = "$aws/things/RemoteSciencePi/shadow/name/remote_science_shadow/update" # for sending URL
@@ -85,15 +84,34 @@ def handleMessage(awsClient, message):
   proc = runYoutubeVideoStream() # start broadcasting 
   
   # connect to arduino, send parameters
-  #ser.write(payload['state']['length'] + "\n".encode('utf-8'))
-  #ser.write(payload['state']['angle'] + "\n".encode('utf-8'))
+  print("length: " + payload['state']['length'])
+  print("angle: " + payload['state']['angle'])
+  # ser.reset_input_buffer()
+  ser.write((payload['state']['length'] + "\n").encode('utf-8'))
+  ser.write((payload['state']['angle'] + "\n").encode('utf-8'))
   
   # listen to arduino result, collide into file. if 'stop' was sent then the file will be partial(?)
-  #while True:
-   # if ser.in_waiting > 0:
-    #  line = ser.readline().decode('utf-8').rstrip() # reads until \n - one result.
-     # print(line)
-          
+  
+  # OR:
+  time.sleep(90) # sleep T
+  while True:
+    if ser.in_waiting > 0:
+      line = ser.readline().decode('utf-8').rstrip() # reads until \n - one result.
+      print(line)      
+    else:
+      break
+      
+  # OR:
+  #line = ""
+  #while ser.in_waiting <= 0:
+  #  if ser.in_waiting > 0:
+  #    while ser.in_waiting > 0:
+  #      line = ser.readline().decode('utf-8').rstrip() # reads until \n - one result.
+  #      print(line)
+      
+  #    if line[StepNumber] == 900: #split by ','
+  #      break
+      
   generated_file = str(random.randint(0,999999)) + ".txt"
   # send file to S3
   s3.upload_file(
@@ -111,7 +129,6 @@ def handleMessage(awsClient, message):
     QoS=0
   )
       
-  time.sleep(90) # change to sleep T
   os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
  
   
@@ -120,7 +137,7 @@ def handleMessage(awsClient, message):
 	
   #  livestream_proc.kill()
   #  runWaitingVideoStream()
-
+  ser.reset_input_buffer()
   time.sleep(0.2)
 
 
@@ -145,6 +162,6 @@ def connectAWS():
   time.sleep(2)
 
 connectAWS()
-#ser.reset_input_buffer()
+ser.reset_input_buffer()
 while True: # listen to messages 
   time.sleep(0.2)
