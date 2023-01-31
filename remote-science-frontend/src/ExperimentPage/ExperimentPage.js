@@ -104,7 +104,7 @@ const ExperimentPage = ({
         }
         response.json().then((data)=>{ 
           if(data && data.result){
-            const filename = data.result
+            const filename = "https://remotesciencebucket.s3.us-west-2.amazonaws.com/data/sample_results.txt"
             setResultsFile(filename);
           }
       });})
