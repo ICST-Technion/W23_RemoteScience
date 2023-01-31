@@ -58,35 +58,6 @@ void setup() {
   pinMode(DIRX,OUTPUT);
   pinMode(STEPY,OUTPUT);
   pinMode(DIRY,OUTPUT);
-
-  //111- all this part will move to the section of loop till the end of the setup
-  //TODO need to get the input from the user
-  int mySteps= 3; // need to change by the user input
-  int upSteps = int(mySteps * 262.195);
-  int myAngleSteps= 25; // need to change by the user input
-  int angleSteps= int(myAngleSteps*9.667);
-
-  //prepare the system
-  Experiment::prepare(upSteps, angleSteps);
-
-  //free the system and print all the angles
-  Experiment::start();
-  Serial.print("Time,Deg angle");
-  for(int i=0; i<900; i++){
-    ReadRawAngle(); //ask the value from the sensor
-    counter = counter + 1;
-    //Serial.print("Time: ");
-    Serial.print(counter);
-    Serial.print(",");
-    //Serial.print("Deg angle: ");
-    double deg = degAngle-startAngle;
-    Serial.println(deg);
-    delay(100); //wait a little - adjust it for "better resolution"  
-  }
-  //here we need to pass the angels from the sensor to rasspery pi
-
-  //wait till the system will stop
-  Experiment::endAll();
 }
 
 void loop() {
@@ -95,7 +66,36 @@ void loop() {
    * if the syatem gets signal to start then:
    * cut the text from the remark that i symboled with "111" till the end of the setup
    */
- 
+  if( Serial.available()>0) {
+    //This is running one experiment!
+    //first param - length
+    int mySteps= getParam(); // need to change by the user input
+    int upSteps = int(mySteps * 262.195);
+    int myAngleSteps= getParam(); // need to change by the user input
+    int angleSteps= int(myAngleSteps*9.667);
+
+    //prepare the system
+    Experiment::prepare(upSteps, angleSteps);
+
+    //free the system and print all the angles
+    Experiment::start();
+    Serial.print("Time,Deg angle");
+    for(int i=0; i<900; i++){
+      ReadRawAngle(); //ask the value from the sensor
+      counter = counter + 1;
+      //Serial.print("Time: ");
+      Serial.print(counter);
+      Serial.print(",");
+      //Serial.print("Deg angle: ");
+      double deg = degAngle-startAngle;
+      Serial.println(deg);
+      delay(100); //wait a little - adjust it for "better resolution"  
+    }
+    //here we need to pass the angels from the sensor to rasspery pi - maybe we don't need this because print does it
+
+    //wait till the system will stop
+    Experiment::endAll();
+  }
 }
 
 void ReadRawAngle()
@@ -159,4 +159,18 @@ void checkMagnetPresence()
     //Serial.println(magnetStatus, BIN); //print it in binary so you can compare it to the table (fig 21)      
   }      
    
+}
+
+int getParam() {
+  String inString = "";
+  while (Serial.available() > 0) {
+    int inChar = Serial.read();
+    if (isDigit(inChar)) {
+      // convert the incoming byte to a char and add it to the string:
+      inString += (char)inChar;
+    }
+    // if you get a newline, print the string, then the string's value:
+    if (inChar == '\n'){
+      return inString.toInt();
+    }
 }
