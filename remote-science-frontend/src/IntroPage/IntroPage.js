@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './IntroPage.css';
 
 const IntroPage = ({
@@ -12,58 +12,61 @@ const IntroPage = ({
 }) => {
   const [nameInputValue, setNameInputValue] = useState(clientName);
 
-  const _handleRequests = requestType => {
-    /** I assume that our request is in http and is in the form:
-     * http://our_amazon_server/accessPermission/clientName - for a request to join the queue
-     * http://our_amazon_server/accessPermissionStatus/clientID - for a request to see the status in the queue
-     * TODO: change the format after we create the server
-     */
-    /*fetch(`http://our_amazon_server/${requestType}/${requestType !== "accessPermission" ? clientID : clientName}`)
+  const _handleRequests = action => {
+    const requestBody = {
+      "action" : action,
+      "clientID": clientID,
+      "clientName": clientName
+    };
+
+    fetch("https://1b6ei90gue.execute-api.us-west-2.amazonaws.com/default/Queue_API", {
+      method: 'POST',
+      body: JSON.stringify(requestBody)
+    })
       .then((response)=>{
         if (response.status !== 200) {
-            setAccessPermission(-1);
-            return;
+          setAccessPermission(-1);
+          return;
         }
         response.json().then((data)=>{
-          if(requestType!=="cancelID"){
-            if(data && data.accessPermission){
-              const currentAccessPermission = data.accessPermission;
-              if(requestType === "accessPermission" && data.clientID) {
-                const currentClientID = data.clientID;
+            if(data){
+              const currentAccessPermission = data.access_permission;
+              const currentClientID = data.clientID;
+              if(action === "register") {
                 setClientID(currentClientID);
-              }
-              if(accessPermission !== currentAccessPermission) {
                 setAccessPermission(currentAccessPermission);
               }
+              if(action === "status_check") {
+                setAccessPermission(currentAccessPermission);
+
+              }
+              if(action === "remove") {
+                setAccessPermission(0);
+                setClientID(0);
+              }
+              return currentAccessPermission
             }
-          }
-          else {
-            if(data && data.success==="ok"){
-              setAccessPermission(0);
-              setClientID(0);
-            }
-          }
       });})
       .catch(()=>{
         setAccessPermission(-1);
         return;
-      });*/
+      });
   }
 
-  /*useLayoutEffect(() => {
+  useEffect(() => {
     /** if accessPermission > 1, meaning a request to join the queue has been done
-     * and it's not the current client's turn yet, we sent a request every second
+     * and it's not the current client's turn yet, we sent a request every 4 minutes
      * to find our status on the queue and update the UI accordingly
      * */
-  /*  if(accessPermission>1){
+    if(accessPermission>1){
       let reload = setTimeout(()=> {
-        setAccessPermission(_handleRequests("accessPermissionStatus"))
-      }, experimentTime+10000);
+        setAccessPermission(_handleRequests("status_check"))
+      }, experimentTime);
       return () => {
         clearTimeout(reload);
       }
     }
-  }, []);*/
+  });
 
   const Error = () => (
     <div className='introPageRoot error'>
@@ -76,18 +79,22 @@ const IntroPage = ({
     setNameInputValue(event.target.value);
   }
 
-  const _handleSubmit = () => {
+  const _handleSubmit = event => {
+    event.preventDefault();
     setClientName(nameInputValue);
-    //_handleRequests("accessPermission");
+    _handleRequests("register");
   }
 
   const _handleCanel = () => {
-    //_handleRequests("cancelID");
+    _handleRequests("remove");
   }
 
   const Status = () => {
     let statusText = "";
     switch(accessPermission) {
+      case undefined:
+        statusText = "Loading..."
+        break;
       case 2:
         statusText = "You are Next!";
         break;

@@ -13,13 +13,13 @@ function App() {
    * premission > 1: (accessPermission -1) is the client's position in th queue
    * for example - 2 means that the current client is next.
    */
-  const [accessPermission, setAccessPermission] = useState(1);
+  const [accessPermission, setAccessPermission] = useState(0);
   /** the name the client will choose in order to register */
-  const [clientName, setClientName] = useState("Remote Science");
+  const [clientName, setClientName] = useState("");
   /** the ID the client will get fron the server */
   const [clientID, setClientID] = useState(0);
 
-  const experimentTime = 90000; //max time for experiment is 90 seconds - 90000 ms
+  const experimentTime = 150000; //max time for experiment is 90 seconds - 90000 ms
 
   return (
     <div className="appRoot">
