@@ -13,6 +13,9 @@ import serial
 # arduino - hardware
 ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
 
+# video
+waiting_pid = -1
+
 # config
 with open('./config.json') as json_file:
     config = json.load(json_file)
@@ -41,8 +44,15 @@ def runYoutubeVideoStream():
   return livestream_proc
 
 def runWaitingVideoStream():
-  pass
+  command = 'ffmpeg -stream_loop -1 -i waiting.mp4 -deinterlace -vcodec libx264 -pix_fmt yuv420p -preset medium -r 30 -g 60 -f flv rtmp://a.rtmp.youtube.com/live2/'
+  command += config['YOUTUBE_KEY']    
 
+  proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid) #preexec_fn=os.setsid to make independent from parent
+  global waiting_pid
+  waiting_pid = os.getpgid(proc.pid)
+  print(proc.pid)
+  print(os.getpgid(proc.pid))
+  return 
 
 # Handle incoming messages and take action
 def handleMessage(awsClient, message):
@@ -79,38 +89,41 @@ def handleMessage(awsClient, message):
     
   # START EXPERIMENT
 
-  # kill the waiting-video process
-  # waiting_process.kill()
+  # kill the waiting-video process and start streaming
+  os.killpg(waiting_pid, signal.SIGTERM)
   proc = runYoutubeVideoStream() # start broadcasting 
   
   # connect to arduino, send parameters
   print("length: " + payload['state']['length'])
   print("angle: " + payload['state']['angle'])
-  # ser.reset_input_buffer()
+  ser.reset_input_buffer()
   ser.write((payload['state']['length'] + "\n").encode('utf-8'))
   ser.write((payload['state']['angle'] + "\n").encode('utf-8'))
   
   # listen to arduino result, collide into file. if 'stop' was sent then the file will be partial(?)
   
-  # OR:
-  time.sleep(90) # sleep T
-  while True:
-    if ser.in_waiting > 0:
+  # time.sleep(30) # sleep T
+  content = ""
+  line = ""
+  done = False
+  while not done: # only done when we receive 900 reads
+    while ser.in_waiting > 0:
+      print("input detected\n")
       line = ser.readline().decode('utf-8').rstrip() # reads until \n - one result.
-      print(line)      
-    else:
-      break
-      
-  # OR:
-  #line = ""
-  #while ser.in_waiting <= 0:
-  #  if ser.in_waiting > 0:
-  #    while ser.in_waiting > 0:
-  #      line = ser.readline().decode('utf-8').rstrip() # reads until \n - one result.
-  #      print(line)
-      
-  #    if line[StepNumber] == 900: #split by ','
-  #      break
+      print(line) # for debug
+      content += line
+      if line.split(',')[0] == "900":
+        done = True
+        break;
+
+  print("GOT OUT - uploading results\n")
+  ser.reset_input_buffer()
+  
+  # write content to local file
+  res_file = open("sample_results.txt", 'w')
+  res_file.seek(0)
+  n = res_file.write(content + " ".join(["" for i in range(1,100)])) # override last experiment
+  res_file.close()
       
   generated_file = str(random.randint(0,999999)) + ".txt"
   # send file to S3
@@ -129,14 +142,13 @@ def handleMessage(awsClient, message):
     QoS=0
   )
       
+  # stop transmitting the experiment
   os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
- 
+  runWaitingVideoStream() 
   
   # elif action == "stop": Future feature - allow stopping of the experiment - dont send the data to the user
 	#  # ask arduino to stop.
 	
-  #  livestream_proc.kill()
-  #  runWaitingVideoStream()
   ser.reset_input_buffer()
   time.sleep(0.2)
 
@@ -163,5 +175,6 @@ def connectAWS():
 
 connectAWS()
 ser.reset_input_buffer()
+runWaitingVideoStream() # start video
 while True: # listen to messages 
   time.sleep(0.2)
