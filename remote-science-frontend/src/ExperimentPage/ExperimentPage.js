@@ -120,7 +120,7 @@ const ExperimentPage = ({
       "action" : "stop"
     };
 
-    fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
+    /*fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
       method: 'POST',
       body: JSON.stringify(requestBody)
     }).then((response)=>{
@@ -141,9 +141,17 @@ const ExperimentPage = ({
       .catch(()=>{
         setAccessPermission(-1);
         return;
-      });
+      });*/
     
     _removeFromQueue();
+
+    //TODO: remove when we add support for stop
+    setAccessPermission(0);
+    setRunningExperiment(false);
+    setResultsFile("");
+    clearTimeout(experimentTimeout);
+    setExperimentTimeout(undefined);
+    setClientID(0);
   }
 
   const _handleResults = () => {
