@@ -16,7 +16,6 @@ float OLEDTimer = 0; //Timer for the screen refresh
 //---------------------------------------------------------------------------
 //Magnetic sensor things
 int magnetStatus = 0; //value of the status register (MD, ML, MH)
-int counter = 0;
 int lowbyte; //raw angle 7:0
 word highbyte; //raw angle 7:0 and 11:8
 int rawAngle; //final raw angle 
@@ -29,6 +28,7 @@ float startAngle = 0; //starting angle
 float totalAngle = 0; //total absolute angular displacement
 float previoustotalAngle = 0; //for the display printing
 
+int counter = 0;
 
 void setup() {
   Serial.begin(115200); //start serial - tip: don't use serial if you don't need it (speed considerations)
@@ -58,10 +58,39 @@ void setup() {
   pinMode(DIRX,OUTPUT);
   pinMode(STEPY,OUTPUT);
   pinMode(DIRY,OUTPUT);
+  //Serial.println("Setup Finished");
+  Serial.flush();
 }
 
+bool test = true;
 void loop() {
+/*
+  if (test == true) {
+    //prepare the system
+    Experiment::prepare(1300, 300);
 
+    //free the system and print all the angles
+    Experiment::start();
+    Serial.println("Time,Deg angle");
+    for(int i=0; i<900; i++){
+      ReadRawAngle(); //ask the value from the sensor
+      counter = counter + 1;
+      //Serial.print("Time: ");
+      Serial.print(counter);
+      Serial.print(",");
+      //Serial.print("Deg angle: ");
+      double deg = degAngle-startAngle;
+      Serial.println(deg);
+      delay(100); //wait a little - adjust it for "better resolution"  
+    }
+    //here we need to pass the angels from the sensor to rasspery pi - maybe we don't need this because print does it
+
+    //wait till the system will stop
+    Experiment::endAll();
+    
+    test = false;
+  }
+ */
   /*
    * if the syatem gets signal to start then:
    * cut the text from the remark that i symboled with "111" till the end of the setup
@@ -74,21 +103,35 @@ void loop() {
     int myAngleSteps= getParam(); // need to change by the user input
     int angleSteps= int(myAngleSteps*9.667);
 
+    // for safety, prevent garbage values:
+    if(int(mySteps)>8 || int(mySteps)<1 || int(myAngleSteps)<1 || int(myAngleSteps)>30)
+      return;
+
+    // Don't forget to remove these print
+//    Serial.print("from arduino:");
+//    Serial.println(mySteps);
+//    Serial.println(upSteps);
+//    Serial.println(myAngleSteps);
+//    Serial.println(angleSteps);
+    
     //prepare the system
     Experiment::prepare(upSteps, angleSteps);
 
-    //free the system and print all the angles
+    //release the system and print all the angles
     Experiment::start();
-    Serial.print("Time,Deg angle");
+    //Serial.println("Time,Deg angle");
+    counter = 0;
     for(int i=0; i<900; i++){
+      //Serial.println("sending you data: ");
       ReadRawAngle(); //ask the value from the sensor
-      counter = counter + 1;
       //Serial.print("Time: ");
+      counter++;
       Serial.print(counter);
       Serial.print(",");
       //Serial.print("Deg angle: ");
       double deg = degAngle-startAngle;
       Serial.println(deg);
+      //Serial.println("data sent");
       delay(100); //wait a little - adjust it for "better resolution"  
     }
     //here we need to pass the angels from the sensor to rasspery pi - maybe we don't need this because print does it
@@ -165,12 +208,17 @@ int getParam() {
   String inString = "";
   while (Serial.available() > 0) {
     int inChar = Serial.read();
+    //Serial.print("GOT: ");
+    //Serial.println((char)inChar);
     if (isDigit(inChar)) {
       // convert the incoming byte to a char and add it to the string:
       inString += (char)inChar;
     }
     // if you get a newline, print the string, then the string's value:
     if (inChar == '\n'){
+      //Serial.print("In Get Params: ");
+      //Serial.println(inString);
       return inString.toInt();
     }
+  }
 }
