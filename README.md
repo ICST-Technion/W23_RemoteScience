@@ -19,6 +19,7 @@ This repo contains all the code we wrote for this project, divided to directorie
 6. unit-tests - the tests we use to check small components of our system.
 ## System Architechture
 ![System Diagram](/assets/RemoteScienceDiagram.png)
+
 The system has 4 main parts:
 1. **The pendulum** (bottom left corner of the diagram): It is moved by a stepper motor to change the length, and a servo and stepper motor to change the angle. The pendulum also has an AS5600 angle sensor to measure the angle while cinducting the experiment. All motors and the sensor are connected to an Ardurino controller to control the motion of the pendulum.
 2. **Raspberry Pi**: Used to manage network communications. The Pi receives commands from the client (via aws services - see 3) and passes them to the Arduino. It also receives data from the Arduino, creates the results file from it and uploads it to S3 service in aws, so that the client can download it. Moreover, the Pi is connected to a camare that records the experiment, and it sends the video to youtube live so it can live stream the experiment to the client.
