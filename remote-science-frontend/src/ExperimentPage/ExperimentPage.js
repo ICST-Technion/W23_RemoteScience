@@ -3,10 +3,8 @@ import Loading from '../Helpers/Loading';
 import './ExperimentPage.css';
 
 const ExperimentPage = ({
-  accessPermission,
   setAccessPermission,
   clientName,
-  setClientName,
   clientID,
   setClientID,
   experimentTime,
@@ -26,30 +24,81 @@ const ExperimentPage = ({
     setLengthInputValue(event.target.value);
   }
 
+  const _removeFromQueue = () => {
+    const qRequestBody = {
+      "action" : "remove",
+      "clientID": clientID,
+      "clientName": clientName
+    };
+  
+    fetch("https://1b6ei90gue.execute-api.us-west-2.amazonaws.com/default/Queue_API", {
+      method: 'POST',
+      body: JSON.stringify(qRequestBody)
+    })
+      .then((response)=>{
+        if (response.status !== 200) {
+          setAccessPermission(-1);
+          return;
+        }
+        response.json().then((data)=>{
+            if(data){
+              console.log("removed");
+            }
+      });})
+      .catch(()=>{
+        setAccessPermission(-1);
+        return;
+      });
+  }
+
   const _handleSubmit = event => {
     event.preventDefault();
     // TODO: add clientID when we add support for multiple users.
-    const requestBody = {
+    const expRequestBody = {
       "thingname" : "RemoteSciencePi",
       "action" : "start",
       "length": lengthInputValue,
       "angle": angleInputValue
     };
 
-    fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
+    const qRequestBody = {
+      "action" : "status_check",
+      "clientID": clientID,
+      "clientName": clientName
+    };
+    //first check there was no timeout and we are still in line
+    fetch("https://1b6ei90gue.execute-api.us-west-2.amazonaws.com/default/Queue_API", {
       method: 'POST',
-      body: JSON.stringify(requestBody)
-    }).then((response)=>{
+      body: JSON.stringify(qRequestBody)
+    })
+      .then((response)=>{
         if (response.status !== 200) {
-            setAccessPermission(-1);
-            return;
+          setAccessPermission(-1);
+          return;
         }
-        response.json().then((data)=>{ 
-            if(data && data==="Shadow Updated!"){
-              setRunningExperiment(true);
-              setExperimentTimeout(setTimeout(()=> {
-                _handleResults()
-              }, experimentTime+45000));
+        response.json().then((data)=>{
+            if(data && data.access_permission === 1){
+              // if we are in line, send request
+              fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
+                method: 'POST',
+                body: JSON.stringify(expRequestBody)
+              }).then((response)=>{
+                  if (response.status !== 200) {
+                      setAccessPermission(-1);
+                      return;
+                  }
+                  response.json().then((data)=>{ 
+                      if(data && data==="Shadow Updated!"){
+                        setRunningExperiment(true);
+                        setExperimentTimeout(setTimeout(()=> {
+                          _handleResults()
+                        }, experimentTime));
+                      }
+                });})
+                .catch(()=>{
+                  setAccessPermission(-1);
+                  return;
+                });
             }
       });})
       .catch(()=>{
@@ -59,7 +108,7 @@ const ExperimentPage = ({
   }
 
   const _handleAnotherExperimentClick = () => {
-    setAccessPermission(1);
+    setAccessPermission(0);
     setRunningExperiment(false);
     setResultsFile("");
     setClientID(0);
@@ -71,7 +120,7 @@ const ExperimentPage = ({
       "action" : "stop"
     };
 
-    fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
+    /*fetch(`https://pnoaa2t5si.execute-api.us-west-2.amazonaws.com/Beta/shadow-state`, {
       method: 'POST',
       body: JSON.stringify(requestBody)
     }).then((response)=>{
@@ -81,7 +130,7 @@ const ExperimentPage = ({
         }
         response.json().then((data)=>{ 
           if(data && data==="Shadow Updated!"){
-            setAccessPermission(1);
+            setAccessPermission(0);
             setRunningExperiment(false);
             setResultsFile("");
             clearTimeout(experimentTimeout);
@@ -92,7 +141,17 @@ const ExperimentPage = ({
       .catch(()=>{
         setAccessPermission(-1);
         return;
-      });
+      });*/
+    
+    _removeFromQueue();
+
+    //TODO: remove when we add support for stop
+    setAccessPermission(0);
+    setRunningExperiment(false);
+    setResultsFile("");
+    clearTimeout(experimentTimeout);
+    setExperimentTimeout(undefined);
+    setClientID(0);
   }
 
   const _handleResults = () => {
@@ -112,6 +171,8 @@ const ExperimentPage = ({
         setAccessPermission(-1);
         return;
       });
+    
+    _removeFromQueue();
   }
 
   return (
