@@ -13,8 +13,9 @@ Instructors: Tom Sofer, Aseel Aborokn
 ## This Repo
 This repo contains all the code we wrote for this project, divided to directories:
 1. remote-science-frontend - the react application for the web page
-2. a dir for Pi
+2. remote-science-pi - the code for the Raspberry Pi
 3. remote-science-arduino - the code that runs on the arduino to conduct the experiment
+4. remote-science-lambdas - the code for the lambda functions that run on aws services.
 ## System Architechture
 ![System Diagram](/assets/RemoteScienceDiagram.png)
 The system has 4 main parts:
