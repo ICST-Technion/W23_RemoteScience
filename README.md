@@ -3,7 +3,7 @@ This project aims to support conducting experiments online, without the need for
 In this project, we support experimenting with a simple pendulum.\
 The system in the projects allows users to set the release angle and length of the pendulum via a web interface, then conducts the experiment with the required parameters, while livestreaming it to the user and recording the results of the experiment. When the experiment is done, a results file is available for the user to download from the web interface.\
 The web interface is available here:
-[Remote Sciece website](http://remotesciencebucket.s3-website-us-west-2.amazonaws.com/)\
+[Remote Sciece website](http://remotesciencebucket.s3-website-us-west-2.amazonaws.com/).
 
 Team members: Adi Falach, Stav Roth, Mai Barishansky\
 Lecturer: Itay Dabran\
