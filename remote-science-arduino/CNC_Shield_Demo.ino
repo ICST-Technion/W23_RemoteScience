@@ -62,8 +62,12 @@ void setup() {
   Serial.flush();
 }
 
-bool test = true;
+bool test = false;
 void loop() {
+  if(test == true){
+      StepperMotorUtils::clockWise(STEPY, DIRY, 300); 
+      delay(2000);
+  }
 /*
   if (test == true) {
     //prepare the system
@@ -83,7 +87,6 @@ void loop() {
       Serial.println(deg);
       delay(100); //wait a little - adjust it for "better resolution"  
     }
-    //here we need to pass the angels from the sensor to rasspery pi - maybe we don't need this because print does it
 
     //wait till the system will stop
     Experiment::endAll();
@@ -103,14 +106,18 @@ void loop() {
     int myAngleSteps= getParam(); // need to change by the user input
     int angleSteps= int(myAngleSteps*9.667);
 
+    //Serial.print("from arduino:");
+    //Serial.print(mySteps);
+    //Serial.print("- sent length. ");
+    //Serial.print(myAngleSteps);
+    //Serial.print("- sent angle. ");
+    //Serial.println("HAPPY?");
     // for safety, prevent garbage values:
     if(int(mySteps)>8 || int(mySteps)<1 || int(myAngleSteps)<1 || int(myAngleSteps)>30)
+      //Serial.println("illegal - EXITING");
       return;
 
     // Don't forget to remove these print
-//    Serial.print("from arduino:");
-//    Serial.println(mySteps);
-//    Serial.println(upSteps);
 //    Serial.println(myAngleSteps);
 //    Serial.println(angleSteps);
     
@@ -206,19 +213,22 @@ void checkMagnetPresence()
 
 int getParam() {
   String inString = "";
-  while (Serial.available() > 0) {
-    int inChar = Serial.read();
-    //Serial.print("GOT: ");
-    //Serial.println((char)inChar);
-    if (isDigit(inChar)) {
-      // convert the incoming byte to a char and add it to the string:
-      inString += (char)inChar;
-    }
-    // if you get a newline, print the string, then the string's value:
-    if (inChar == '\n'){
-      //Serial.print("In Get Params: ");
-      //Serial.println(inString);
-      return inString.toInt();
-    }
-  }
+  inString = Serial.readStringUntil('\n');
+  return inString.toInt();
+//  
+//  while (Serial.available() > 0) {
+//    int inChar = Serial.read();
+//    Serial.print("GOT: ");
+//    Serial.println((char)inChar);
+//    if (isDigit(inChar)) {
+//      // convert the incoming byte to a char and add it to the string:
+//      inString += (char)inChar;
+//    }
+//    // if you get a newline, print the string, then the string's value:
+//    if (inChar == '\n'){
+//      //Serial.print("In Get Params: ");
+//      //Serial.println(inString);
+//      return inString.toInt();
+//    }
+//  }
 }

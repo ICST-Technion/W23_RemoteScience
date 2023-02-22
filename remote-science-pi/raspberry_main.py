@@ -1,3 +1,4 @@
+
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from awscrt import mqtt
 import subprocess
@@ -102,7 +103,6 @@ def handleMessage(awsClient, message):
   
   # listen to arduino result, collide into file. if 'stop' was sent then the file will be partial(?)
   
-  # time.sleep(30) # sleep T
   content = ""
   line = ""
   done = False
@@ -111,7 +111,7 @@ def handleMessage(awsClient, message):
       print("input detected\n")
       line = ser.readline().decode('utf-8').rstrip() # reads until \n - one result.
       print(line) # for debug
-      content += line
+      content += (line + "\n")
       if line.split(',')[0] == "900":
         done = True
         break;
