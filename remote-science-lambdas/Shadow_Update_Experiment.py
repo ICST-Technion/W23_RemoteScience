@@ -9,8 +9,6 @@ logger.setLevel(logging.INFO)
 client = boto3.client('iot-data')
  
 def lambda_handler(event, context):
-    print(json.dumps(event['body']))
-    
     body = event['body'] # this is a request from the website, we update ths shadow accordingly
     body = json.loads(body)
     
@@ -18,19 +16,20 @@ def lambda_handler(event, context):
     if (THINGNAME == ""):
         print("No Thing Name found. Setting Thing Name = RemoteSciencePi")
         THINGNAME="RemoteSciencePi"
-    
+        
+    #result = asyncio.run(async_handler(event,context))
     if body['action'] == "start": # start experiment + parameters
         # requested experiment params
         length = body['length']
         angle = body['angle']
-
+        
         #first- reset:
         payload = json.dumps({'state': { 'desired': { 'action': 'start', 'length': "-1", 'angle': "-1", 'result': '-' } }})
         response = client.update_thing_shadow(
             thingName=THINGNAME,
             payload=payload
         )
-        #SLEEP?
+        time.sleep(1)
         # send actual parameters
         payload = json.dumps({'state': { 'desired': { 'action': 'start', 'length': length, 'angle': angle, 'result': '-' } }})
         
@@ -39,7 +38,9 @@ def lambda_handler(event, context):
             thingName=THINGNAME,
             payload=payload
         )
+    
         logger.info("IOT Shadow Updated")
+        
     else: # stop experiment - FUTURE FEATURE.
         payload = json.dumps({'state': { 'desired': { 'action': 'stop', 'length': '-', 'angle': '-', 'result': '-' } }})
         
@@ -50,7 +51,6 @@ def lambda_handler(event, context):
         )
         logger.info("IOT Shadow Updated")
         
-    
     return {
         'statusCode': 200,
         "headers": {
@@ -60,3 +60,4 @@ def lambda_handler(event, context):
         },
         'body': json.dumps('Shadow Updated!')
     }
+   

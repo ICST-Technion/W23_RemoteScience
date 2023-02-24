@@ -95,8 +95,8 @@ def handleMessage(awsClient, message):
   proc = runYoutubeVideoStream() # start broadcasting 
   
   # connect to arduino, send parameters
-  print("length: " + payload['state']['length'])
-  print("angle: " + payload['state']['angle'])
+  print("length: " + str(payload['state']['length']))
+  print("angle: " + str(payload['state']['angle']))
   ser.reset_input_buffer()
   ser.write((payload['state']['length'] + "\n").encode('utf-8'))
   ser.write((payload['state']['angle'] + "\n").encode('utf-8'))
@@ -125,7 +125,7 @@ def handleMessage(awsClient, message):
   n = res_file.write(content + " ".join(["" for i in range(1,100)])) # override last experiment
   res_file.close()
       
-  generated_file = str(random.randint(0,999999)) + ".txt"
+  generated_file = str(random.randint(0,999999))+"_ang"+payload['state']['angle']+"_len"+str(payload['state']['length'])+".txt"
   # send file to S3
   s3.upload_file(
       Filename="sample_results.txt",
